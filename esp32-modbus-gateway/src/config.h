@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 const char* WIFI_SSID = "ZTOT";
 // TODO: Insert custom WPA2 WiFi PSK here
 //const char* WIFI_PSK = "";
