@@ -36,5 +36,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   //Serial.printf("Test %lu\n", millis());
   modbusTcp.task();
+
+  modbusTcp.Hreg(0, millis() % UINT16_MAX);
   yield();
 }
