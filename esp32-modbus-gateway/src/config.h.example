@@ -8,4 +8,4 @@ const char* WIFI_SUBNET = "255.255.255.0";
 const char* WIFI_GATEWAY = "10.42.0.1";
 
 const uint16_t MODBUS_SERVER_PORT = 502;
-const uint16_t MODBUS_NUM_HREGS = 100;
+const uint16_t MODBUS_NUM_REGS = 100;
