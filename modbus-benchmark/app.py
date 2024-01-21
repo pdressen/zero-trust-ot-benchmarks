@@ -32,11 +32,17 @@ if c.open():
         start_time = perf_counter()
 
         # read
+        coils = c.read_coils(0, NUM_REGS)        
+        if not coils:
+            raise Exception(c.last_error_as_txt)
         hregs = c.read_holding_registers(0, NUM_REGS)        
         if not hregs:
             raise Exception(c.last_error_as_txt)
-        coils = c.read_coils(0, NUM_REGS)        
-        if not coils:
+        iregs = c.read_input_registers(0, NUM_REGS)        
+        if not iregs:
+            raise Exception(c.last_error_as_txt)
+        dis = c.read_discrete_inputs(0, NUM_REGS)        
+        if not dis:
             raise Exception(c.last_error_as_txt)
         
         # write
