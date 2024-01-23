@@ -71,7 +71,7 @@ def run():
             durations.append(duration)
         
         c.close()
-        print(f"Done")
+        print(f"Done", file=stderr)
     else:
         print(f"Error opening modbus connection: {c.last_error_as_txt}", file=stderr)
 
