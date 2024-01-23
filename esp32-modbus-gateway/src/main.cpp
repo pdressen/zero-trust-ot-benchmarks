@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ModbusTCP.h>
+#include <WireGuard-ESP32.h>
 #include "config.h"
 
 // enable logging each request to serial
@@ -9,6 +10,8 @@
 IPAddress wifiIp = ipaddr_addr(WIFI_IP);
 IPAddress wifiSubnet = ipaddr_addr(WIFI_SUBNET);
 IPAddress wifiGateway = ipaddr_addr(WIFI_GATEWAY);
+
+WireGuard wireguard;
 
 ModbusTCP modbusTcp;
 
@@ -36,6 +39,12 @@ void setup() {
   }
   Serial.printf("Connected. IP: \"%s\"...\n", WiFi.localIP().toString());
 
+  Serial.printf("Connecting to WireGuard peer %s:%d with IP %s\n", WG_PEER_IP, WG_PEER_PORT, WG_IP);
+  if (wireguard.begin(IPAddress(ipaddr_addr(WG_IP)) , WG_PRIV_KEY, WG_PEER_IP, WG_PEER_PUB_KEY, WG_PEER_PORT))
+    Serial.println("Connection successfull");
+  else
+    Serial.printf("Could not connect");
+
   Serial.println("Starting ModbusTCP server...");
 
 #ifdef REQUEST_LOGGING
@@ -47,17 +56,23 @@ void setup() {
   if (modbusTcp.addCoil(0, false, MODBUS_NUM_REGS)
       && modbusTcp.addIsts(0, false, MODBUS_NUM_REGS)
       && modbusTcp.addIreg(0, 0, MODBUS_NUM_REGS)
-      && modbusTcp.addHreg(0, 0, MODBUS_NUM_REGS))
-    Serial.printf("Added %u registers of each kind\n", MODBUS_NUM_REGS);
-  else
+      && modbusTcp.addHreg(0, 0, MODBUS_NUM_REGS)) {
+        for (int i = 0; i < MODBUS_NUM_REGS; ++i) {
+          modbusTcp.Coil(i, rand() % 2 == 0);
+          modbusTcp.Ists(i, rand() % UINT16_MAX);
+          modbusTcp.Ireg(i, rand() % UINT16_MAX);
+          modbusTcp.Hreg(i, rand() % UINT16_MAX);
+        }
+      Serial.printf("Added %u registers of each kind\n", MODBUS_NUM_REGS);
+  } else {
     Serial.println("Couldn't add registers");
+  }
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   //Serial.printf("Test %lu\n", millis());
   modbusTcp.task();
-
-  modbusTcp.Hreg(0, millis() % UINT16_MAX);
+  modbusTcp.Ireg(0, millis() % UINT16_MAX);
   yield();
 }

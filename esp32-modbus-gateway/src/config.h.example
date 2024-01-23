@@ -7,5 +7,12 @@ const char* WIFI_IP = "10.42.0.2";
 const char* WIFI_SUBNET = "255.255.255.0";
 const char* WIFI_GATEWAY = "10.42.0.1";
 
+// TODO: Insert wireguard details here
+const char* WG_PEER_IP = "10.42.0.1";   // IP of WireGuard-VPN-Server
+const int WG_PEER_PORT = 51820; // Port of WireGuard-VPN-Server
+//const char* WG_PEER_PUB_KEY = ""; // Public key of WireGuard-VPN-Server
+const char* WG_IP = "10.42.1.2";    // IP of this ESP in WireGuard-VPN
+//const char* WG_PRIV_KEY = "";     // Private key of this ESP
+
 const uint16_t MODBUS_SERVER_PORT = 502;
 const uint16_t MODBUS_NUM_REGS = 100;
