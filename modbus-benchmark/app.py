@@ -6,6 +6,7 @@ from sys import stderr
 
 # consts
 NUM_REGS = 96
+READ_WRITE_INDIVIDUALLY = True  # read/write each register separately
 NUM_ITERATIONS = 1_000   # how many times to run a read/write cycle
 OUTPUT_VERBOSE_TIMING = True    # if each single cycle time should be logged
 
@@ -32,41 +33,67 @@ def run():
         # benchmark reading & writing
         print(f"Performing {NUM_ITERATIONS} read-write cycles...", file=stderr)
         
+        coils = [None] * NUM_REGS
+        hregs = [None] * NUM_REGS
+        iregs = [None] * NUM_REGS
+        dis = [None] * NUM_REGS
+
         last_written_coils = None
         last_written_hregs = None
         for i in range(0, NUM_ITERATIONS):
             start_time = perf_counter()
 
-            # read
-            coils = c.read_coils(0, NUM_REGS)        
-            if not coils:
-                raise Exception(c.last_error_as_txt)
-            if last_written_coils is not None and coils != last_written_coils:
-                raise Exception("Read back coils didn't match")
-            hregs = c.read_holding_registers(0, NUM_REGS)
-            if not hregs:
-                raise Exception(c.last_error_as_txt)
-            if last_written_hregs is not None and hregs != last_written_hregs:
-                raise Exception("Read back hregs didn't match")
-            iregs = c.read_input_registers(0, NUM_REGS)
-            if not iregs:
-                raise Exception(c.last_error_as_txt)
-            dis = c.read_discrete_inputs(0, NUM_REGS)
-            if not dis:
-                raise Exception(c.last_error_as_txt)
-            
-            # write
-            for j in range(len(hregs)):
-                hregs[j] = (hregs[j] + 1) % 0xFF
-            if not c.write_multiple_registers(0, hregs):
-                raise Exception(c.last_error_as_txt)    
+            if READ_WRITE_INDIVIDUALLY:
+                # read
+                for r in range(NUM_REGS):
+                    coils[r] = c.read_coils(r)[0]
+                    hregs[r] = c.read_holding_registers(r)[0]
+                    iregs[r] = c.read_input_registers(r)[0]
+                    dis[r] = c.read_discrete_inputs(r)[0]
+
+                if last_written_coils is not None and coils != last_written_coils:
+                    raise Exception("Read back coils didn't match")
+                if last_written_hregs is not None and hregs != last_written_hregs:
+                    raise Exception("Read back hregs didn't match")
+                
+                # write
+                for r in range(NUM_REGS):
+                    coils[r] = not coils[r]
+                    c.write_single_coil(r, coils[r])
+                    hregs[r] = (hregs[r] + 1) % 0xFF
+                    c.write_single_register(r, hregs[r])
+
+            else:
+                # read
+                coils = c.read_coils(0, NUM_REGS)        
+                if not coils:
+                    raise Exception(c.last_error_as_txt)
+                if last_written_coils is not None and coils != last_written_coils:
+                    raise Exception("Read back coils didn't match")
+                hregs = c.read_holding_registers(0, NUM_REGS)
+                if not hregs:
+                    raise Exception(c.last_error_as_txt)
+                if last_written_hregs is not None and hregs != last_written_hregs:
+                    raise Exception("Read back hregs didn't match")
+                iregs = c.read_input_registers(0, NUM_REGS)
+                if not iregs:
+                    raise Exception(c.last_error_as_txt)
+                dis = c.read_discrete_inputs(0, NUM_REGS)
+                if not dis:
+                    raise Exception(c.last_error_as_txt)
+                
+                # write
+                for j in range(len(hregs)):
+                    hregs[j] = (hregs[j] + 1) % 0xFF
+                if not c.write_multiple_registers(0, hregs):
+                    raise Exception(c.last_error_as_txt)                    
+                for j in range(len(coils)):
+                    coils[j] = not coils[j]
+                if not c.write_multiple_coils(0, coils):
+                    raise Exception(c.last_error_as_txt)                
+                
             last_written_hregs = hregs.copy()
-            for j in range(len(coils)):
-                coils[j] = not coils[j]                
-            if not c.write_multiple_coils(0, coils):
-                raise Exception(c.last_error_as_txt)
-            last_written_coils = coils.copy()
-            
+            last_written_coils = coils.copy()            
             duration = perf_counter() - start_time
             durations.append(duration)
         
