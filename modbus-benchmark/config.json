@@ -2,6 +2,12 @@
   "modbus_tcp": {
     "host": "10.42.0.2",
     "port": 502,
-    "id": 1
+    "id": 1,
+    "num_regs": 96,
+    "num_iterations": 1000,
+    "read_write_individually": true
+  },
+  "output": {
+    "verbose_timing": true
   }
 }

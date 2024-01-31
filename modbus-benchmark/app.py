@@ -4,12 +4,6 @@ from json import load
 from statistics import stdev
 from sys import stderr
 
-# consts
-NUM_REGS = 96
-READ_WRITE_INDIVIDUALLY = True  # read/write each register separately
-NUM_ITERATIONS = 1_000   # how many times to run a read/write cycle
-OUTPUT_VERBOSE_TIMING = True    # if each single cycle time should be logged
-
 # load config.json
 config = None
 with open("config.json", "r") as config_file:
@@ -17,10 +11,16 @@ with open("config.json", "r") as config_file:
 MODBUS_TCP_HOST = config["modbus_tcp"]["host"]
 MODBUS_TCP_PORT = config["modbus_tcp"]["port"]
 MODBUS_TCP_ID = config["modbus_tcp"]["id"]
+NUM_REGS = config["modbus_tcp"]["num_regs"]
+READ_WRITE_INDIVIDUALLY = config["modbus_tcp"]["read_write_individually"]  # read/write each register separately
+NUM_ITERATIONS = config["modbus_tcp"]["num_iterations"]  # how many times to run a read/write cycle
+OUTPUT_VERBOSE_TIMING = config["output"]["verbose_timing"]  # if each single cycle time should be logged
 
 durations = []
 
 def run():
+    print(f"Reading & writing {NUM_REGS} registers of each type {NUM_ITERATIONS} times", file=stderr)
+
     # create ModbusTCP client (master)
     print(f"Connecting to {MODBUS_TCP_HOST}:{MODBUS_TCP_PORT}, unit-ID {MODBUS_TCP_ID}...")
     c = ModbusClient(host=MODBUS_TCP_HOST, port=config["modbus_tcp"]["port"], unit_id=config["modbus_tcp"]["id"], auto_open=True)
@@ -30,7 +30,7 @@ def run():
         print("Waiting for things to settle (sleep)...", file=stderr)
         sleep(5)
 
-        # benchmark reading & writing
+        # benchmark reading & writing        
         print(f"Performing {NUM_ITERATIONS} read-write cycles...", file=stderr)
         
         coils = [None] * NUM_REGS
