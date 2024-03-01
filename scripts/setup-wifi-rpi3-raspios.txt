@@ -3,7 +3,7 @@
 sudo apt install dnsmasq hostapd iptables
 
 sudo nano /etc/dhcpcd.conf
-# Eingügen:
+# Einfügen:
 ```
 interface wlan0
 static ip_address=10.42.0.1/24
